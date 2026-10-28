@@ -1,0 +1,8 @@
+const express=require("express"), Course=require("../models/Course");
+const router=express.Router();
+router.get("/",async(req,res)=>{try{res.json(await Course.find().sort({createdAt:-1}));}catch{res.status(500).json({message:"Could not fetch courses."});}});
+router.get("/:id",async(req,res)=>{try{const c=await Course.findById(req.params.id);if(!c)return res.status(404).json({message:"Course not found."});res.json(c);}catch{res.status(400).json({message:"Invalid course ID."});}});
+router.post("/",async(req,res)=>{try{const {name,description,duration,instructor,level}=req.body;if(!name?.trim()||!description?.trim()||!duration?.trim())return res.status(400).json({message:"Name, description and duration are required."});res.status(201).json(await Course.create({name,description,duration,instructor,level}));}catch(e){res.status(400).json({message:e.message||"Could not create course."});}});
+router.put("/:id",async(req,res)=>{try{const {name,description,duration,instructor,level}=req.body;if(!name?.trim()||!description?.trim()||!duration?.trim())return res.status(400).json({message:"Name, description and duration are required."});const c=await Course.findByIdAndUpdate(req.params.id,{name,description,duration,instructor,level},{new:true,runValidators:true});if(!c)return res.status(404).json({message:"Course not found."});res.json(c);}catch(e){res.status(400).json({message:e.message||"Could not update course."});}});
+router.delete("/:id",async(req,res)=>{try{const c=await Course.findByIdAndDelete(req.params.id);if(!c)return res.status(404).json({message:"Course not found."});res.json({message:"Course deleted successfully."});}catch{res.status(400).json({message:"Invalid course ID."});}});
+module.exports=router;
